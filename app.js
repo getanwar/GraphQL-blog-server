@@ -4,6 +4,8 @@ const schema = require('./schema/schema');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const port = process.env.PORT || 8080;
+
 mongoose.connect('mongodb://anwar:anwar123@ds223542.mlab.com:23542/gql1');
 mongoose.connection.once('open', () => {
     console.log('database connected...');
@@ -17,6 +19,6 @@ app.use('/graphql', graphqlHTTP({
     graphiql: true
 }));
 
-app.listen(4000, () => {
-    console.log('app running on 4000');
+app.listen(port, () => {
+    console.log('app running on '+port);
 });
