@@ -7,7 +7,14 @@ const {
     GraphQLInt
 } = require('graphql');
 
+// Helpers
 const filterArgs = require('../util/filterArgs');
+const AuthServices = require('../services/auth');
+
+//Types
+const UserType = require('./types/UserType');
+
+// Models
 const PostModel = require('../models/PostModel');
 const AuthorModel = require('../models/AuthorModel');
 const CategoryModel = require('../models/CategoryModel');
@@ -160,6 +167,12 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args) {
                 return AuthorModel.findById(args.id);
             }
+        },
+        authUser: {
+            type: UserType,
+            resolve(parent, args, req) {
+                return req.user;
+            }
         }
     }
 });
@@ -167,6 +180,34 @@ const RootQuery = new GraphQLObjectType({
 const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
+        signup: {
+            type: UserType,
+            args: {
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve(parent, { email, password }, req) {
+                return AuthServices.signup({ email, password, req });
+            }
+        },
+        login: {
+            type: UserType,
+            args: {
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve(parent, { email, password }, req) {
+                return AuthServices.login({ email, password, req });
+            }
+        },
+        logout: {
+            type: UserType,
+            resolve(parent, args, req) {
+                const user = req.user;
+                req.logout();
+                return user;
+            }
+        },
         addPost: {
             type: PostType,
             args: {

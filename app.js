@@ -1,18 +1,43 @@
-const express = require('express');
-const graphqlHTTP = require('express-graphql');
-const schema = require('./schema/schema');
-const mongoose = require('mongoose');
+// dotenv imports all environment variables from .env file 
+// and makes them accessible from process.env
+require('dotenv').config();
 const cors = require('cors');
+const express = require('express');
+const passport = require('passport');
+const mongoose = require('mongoose');
+const session = require('express-session');
+const graphqlHTTP = require('express-graphql');
+const MongoStore = require('connect-mongo')(session);
+
+const schema = require('./schema/schema');
 
 const port = process.env.PORT || 8080;
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect('mongodb://anwar:anwar123@ds223542.mlab.com:23542/gql1');
+mongoose.connect(MONGO_URI);
 mongoose.connection.once('open', () => {
     console.log('database connected...');
 });
 
 const app = express();
-app.use(cors());
+
+app.use(session({
+    resave: true,
+    saveUninitialized: true,
+    secret: 'aaabbbccc',
+    store: new MongoStore({
+        url: MONGO_URI,
+        autoReconnect: true
+    })
+}));
+
+const corsOptions = {
+    credentials: true,
+    origin: 'http://localhost:3000',
+};
+app.use(cors(corsOptions));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/graphql', graphqlHTTP({
     schema,
